@@ -14,6 +14,9 @@ class AssetViewer(QLabel):
         self.resize_margin = 10
         self.original_size = None
         self.is_hidden = False
+        self.allow_overlap = False  # Mặc định luôn trên cùng
+        self.update_layer_state()
+
 
         if file_path.lower().endswith(".gif"):
             self.movie = QMovie(file_path)
@@ -67,7 +70,14 @@ class AssetViewer(QLabel):
         menu.addAction("Phóng to", lambda: self.resize_asset(1.5))
         menu.addAction("Khôi phục kích thước gốc", lambda: self.resize_asset(1.0))
         menu.addAction("Ẩn", self.toggle_visibility)
+
+        layer_action = menu.addAction("Cho phép các cửa sổ khác đè lên")
+        layer_action.setCheckable(True)
+        layer_action.setChecked(self.allow_overlap)
+        layer_action.triggered.connect(self.toggle_layer_mode)
+
         menu.exec_(self.mapToGlobal(pos))
+
 
     def resize_asset(self, scale_factor):
         new_width = int(self.original_size.width() * scale_factor)
@@ -81,3 +91,12 @@ class AssetViewer(QLabel):
         else:
             self.hide()
             self.is_hidden = True
+    def update_layer_state(self):
+        if self.allow_overlap:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool)
+        else:
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.show()
+    def toggle_layer_mode(self, checked):
+        self.allow_overlap = checked
+        self.update_layer_state()
